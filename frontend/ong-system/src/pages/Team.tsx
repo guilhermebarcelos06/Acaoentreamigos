@@ -308,7 +308,7 @@ export default function Team() {
   return (
     <div className="space-y-6">
       {/* Topo da Tela */}
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Gestão de Equipe</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -322,7 +322,7 @@ export default function Team() {
               resetForm();
               setModalAberto('novo');
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-medium text-sm hover:bg-primary/90 transition-all shadow-sm hover:shadow-md"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 bg-primary text-white rounded-xl font-medium text-sm hover:bg-primary/90 transition-all shadow-sm hover:shadow-md"
           >
             <UserPlus className="w-4 h-4" />
             Adicionar Membro
@@ -353,21 +353,23 @@ export default function Team() {
 
       {/* Quadro Informativo do Meu Acesso */}
       {meuPerfil && (
-        <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm flex-shrink-0">
-            {meuPerfil.nome.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="font-semibold text-sm text-foreground">{meuPerfil.nome}</p>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${CARGO_COLORS[meuPerfil.cargo]}`}>
-                {CARGO_LABELS[meuPerfil.cargo]}
-              </span>
-              <span className="text-[11px] text-muted-foreground">Seu nível de acesso atual</span>
+        <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm flex-shrink-0">
+              {meuPerfil.nome.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="font-semibold text-sm text-foreground">{meuPerfil.nome}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${CARGO_COLORS[meuPerfil.cargo]}`}>
+                  {CARGO_LABELS[meuPerfil.cargo]}
+                </span>
+                <span className="text-[11px] text-muted-foreground">Seu nível de acesso atual</span>
+              </div>
             </div>
           </div>
           {isAdminMaster && (
-            <div className="ml-auto text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 font-medium">
+            <div className="self-start sm:self-auto sm:ml-auto text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5 flex items-center gap-1.5 font-medium animate-pulse">
               <Crown className="w-3.5 h-3.5 fill-amber-400" />
               Modo Admin Master
             </div>
@@ -420,10 +422,10 @@ export default function Team() {
               return (
                 <div
                   key={usuario.id}
-                  className="p-4 px-6 flex items-center justify-between hover:bg-muted/10 transition-colors"
+                  className="p-4 px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/10 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="relative">
+                    <div className="relative flex-shrink-0">
                       <div className="w-11 h-11 rounded-full bg-secondary font-bold flex items-center justify-center text-sm border">
                         {usuario.nome.charAt(0).toUpperCase()}
                       </div>
@@ -434,7 +436,7 @@ export default function Team() {
                       )}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-semibold text-sm text-foreground">{usuario.nome}</h4>
                         {isMe && (
                           <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-semibold">
@@ -443,7 +445,7 @@ export default function Team() {
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5 text-xs">
-                        <span className="text-muted-foreground">{usuario.email}</span>
+                        <span className="text-muted-foreground break-all">{usuario.email}</span>
                         <span className="text-muted-foreground">•</span>
                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${CARGO_COLORS[usuario.cargo]}`}>
                           {CARGO_LABELS[usuario.cargo]}
@@ -455,7 +457,7 @@ export default function Team() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 self-end sm:self-auto">
                     {podeEditar && (
                       <button
                         onClick={() => abrirEdicao(usuario)}
@@ -652,45 +654,47 @@ export default function Team() {
                   </div>
                 </div>
 
-                <div className="border rounded-2xl overflow-hidden shadow-sm">
-                  {/* Cabeçalho */}
-                  <div className="grid grid-cols-5 gap-2 px-4 py-3 bg-muted/40 border-b text-center text-xs font-bold text-muted-foreground">
-                    <div className="text-left font-semibold">Módulo do Sistema</div>
-                    <div>Ver</div>
-                    <div>Criar</div>
-                    <div>Editar</div>
-                    <div>Excluir</div>
-                  </div>
-
-                  {/* Linhas */}
-                  {MODULOS.map((m) => (
-                    <div
-                      key={m}
-                      className="grid grid-cols-5 gap-2 px-4 py-3.5 border-b last:border-0 hover:bg-muted/10 transition-colors items-center text-center"
-                    >
-                      <div className="text-left">
-                        <span className="text-sm font-semibold text-foreground">{MODULO_LABELS[m]}</span>
-                      </div>
-                      {(['ver', 'criar', 'editar', 'excluir'] as const).map((acao) => {
-                        const ativo = form.permissoes[m][acao];
-                        return (
-                          <div key={acao} className="flex justify-center">
-                            <button
-                              type="button"
-                              onClick={() => togglePerm(m, acao)}
-                              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                                ativo
-                                  ? 'bg-primary border-primary text-white shadow-sm'
-                                  : 'border-muted-foreground/30 hover:border-primary/50 bg-background'
-                              }`}
-                            >
-                              {ativo && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                            </button>
-                          </div>
-                        );
-                      })}
+                <div className="overflow-x-auto -mx-6 sm:mx-0 px-6 sm:px-0">
+                  <div className="border rounded-2xl overflow-hidden shadow-sm min-w-[500px]">
+                    {/* Cabeçalho */}
+                    <div className="grid grid-cols-5 gap-2 px-4 py-3 bg-muted/40 border-b text-center text-xs font-bold text-muted-foreground">
+                      <div className="text-left font-semibold">Módulo do Sistema</div>
+                      <div>Ver</div>
+                      <div>Criar</div>
+                      <div>Editar</div>
+                      <div>Excluir</div>
                     </div>
-                  ))}
+
+                    {/* Linhas */}
+                    {MODULOS.map((m) => (
+                      <div
+                        key={m}
+                        className="grid grid-cols-5 gap-2 px-4 py-3.5 border-b last:border-0 hover:bg-muted/10 transition-colors items-center text-center"
+                      >
+                        <div className="text-left">
+                          <span className="text-sm font-semibold text-foreground">{MODULO_LABELS[m]}</span>
+                        </div>
+                        {(['ver', 'criar', 'editar', 'excluir'] as const).map((acao) => {
+                          const ativo = form.permissoes[m][acao];
+                          return (
+                            <div key={acao} className="flex justify-center">
+                              <button
+                                type="button"
+                                onClick={() => togglePerm(m, acao)}
+                                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                  ativo
+                                    ? 'bg-primary border-primary text-white shadow-sm'
+                                    : 'border-muted-foreground/30 hover:border-primary/50 bg-background'
+                                }`}
+                              >
+                                {ativo && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 

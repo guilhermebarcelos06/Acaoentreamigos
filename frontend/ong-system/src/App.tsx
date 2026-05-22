@@ -242,7 +242,7 @@ function AppInner() {
 
       {/* Conteúdo principal */}
       <main className="flex-1 h-full overflow-y-auto bg-[#F8FAFC] dark:bg-background">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto min-h-full">
+        <div className="p-3 sm:p-6 md:p-8 max-w-7xl mx-auto min-h-full">
           {tabAtiva === 'overview' && <Overview setActiveTab={setActiveTab} />}
           {tabAtiva === 'donations' && <Donations />}
           {tabAtiva === 'financial' && <Financial />}

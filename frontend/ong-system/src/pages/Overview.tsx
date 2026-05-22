@@ -67,13 +67,13 @@ export default function Overview({ setActiveTab }: { setActiveTab: (tab: string)
   }));
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <h1 className="text-2xl font-bold text-foreground">Visão Geral</h1>
         <p className="text-sm text-muted-foreground">Hoje é um ótimo dia para ajudar!</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card p-6 rounded-2xl border flex items-center justify-between shadow-sm">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Saldo Atual</p>

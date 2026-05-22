@@ -350,8 +350,8 @@ export default function Donations() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card w-full max-w-md p-6 rounded-2xl border shadow-lg relative text-foreground">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card w-full max-w-md p-6 rounded-2xl border shadow-lg relative text-foreground max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
@@ -484,8 +484,8 @@ export default function Donations() {
 
       {/* Launch Modal */}
       {isLaunchModalOpen && selectedCampaignForLaunch && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card w-full max-w-md p-6 rounded-2xl border shadow-lg relative text-foreground">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card w-full max-w-md p-6 rounded-2xl border shadow-lg relative text-foreground max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setIsLaunchModalOpen(false)}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"

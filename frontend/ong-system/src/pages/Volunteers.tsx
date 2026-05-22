@@ -20,12 +20,12 @@ export default function Volunteers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Controle de Voluntários</h1>
           <p className="text-sm text-muted-foreground mt-1">Dados sincronizados automaticamente com o Google Forms de Inscrição.</p>
           
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-wrap gap-3 mt-4">
             <div className="flex items-center gap-2 text-sm font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-full">
               <Users className="w-4 h-4" />
               32 Ativos
@@ -37,17 +37,17 @@ export default function Volunteers() {
           </div>
         </div>
         
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
           <button 
             onClick={() => alert("Abrindo link do formulário...")}
-            className="flex items-center gap-2 px-4 py-2 border rounded-md font-medium text-sm hover:bg-muted/50 transition-colors bg-card"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 border rounded-md font-medium text-sm hover:bg-muted/50 transition-colors bg-card text-foreground"
           >
             <ExternalLink className="w-4 h-4" />
             Ver Formulário
           </button>
           <button 
             onClick={() => alert("Funcionalidade para vincular novo formulário.")}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md font-medium text-sm hover:bg-primary/90 transition-colors"
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md font-medium text-sm hover:bg-primary/90 transition-colors"
           >
             <Link2 className="w-4 h-4" />
             Vincular Form
