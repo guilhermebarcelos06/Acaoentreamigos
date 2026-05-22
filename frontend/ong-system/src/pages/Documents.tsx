@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
   Search, Plus, Download, Trash2, FileText, Calendar, 
-  AlertCircle, UploadCloud, X, Eye, FileDigit, HelpCircle 
+  AlertCircle, UploadCloud, X, Eye, FileDigit 
 } from "lucide-react";
 import { API_BASE_URL } from "../lib/api";
 
