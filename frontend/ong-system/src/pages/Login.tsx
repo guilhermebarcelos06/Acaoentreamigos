@@ -109,13 +109,13 @@ export default function Login() {
 
           {/* Formulário */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
+            {/* Email / Username */}
             <div>
               <label
                 className="text-xs font-medium mb-1.5 block"
                 style={{ color: 'rgba(255,255,255,0.6)' }}
               >
-                EMAIL
+                USUÁRIO OU EMAIL
               </label>
               <div className="relative">
                 <Mail
@@ -124,11 +124,11 @@ export default function Login() {
                 />
                 <input
                   id="login-email"
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
+                  placeholder="teste ou seu@email.com"
                   className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white outline-none transition-all"
                   style={{
                     background: 'rgba(255, 255, 255, 0.07)',

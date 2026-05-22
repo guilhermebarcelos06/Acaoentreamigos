@@ -96,9 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function signIn(
-    email: string,
+    emailOrUsername: string,
     password: string,
   ): Promise<{ error: string | null }> {
+    const email = emailOrUsername.includes('@')
+      ? emailOrUsername
+      : `${emailOrUsername}@ong.org`;
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
