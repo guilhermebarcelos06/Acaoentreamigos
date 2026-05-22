@@ -47,7 +47,9 @@ export default function Documents() {
 
   // Format date helper to human friendly strings
   const formatDateGroup = (dateStr: string) => {
+    if (!dateStr || dateStr === "Sem Data" || dateStr === "Invalid Date") return "Sem data de upload";
     const dateObj = new Date(dateStr);
+    if (isNaN(dateObj.getTime())) return "Sem data de upload";
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
@@ -156,14 +158,14 @@ export default function Documents() {
 
   // Filters
   const filteredDocs = documents.filter(doc => 
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.originalName.toLowerCase().includes(searchTerm.toLowerCase())
+    (doc.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (doc.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (doc.originalName || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Group by upload date YYYY-MM-DD
   const groupedDocs = filteredDocs.reduce((acc: Record<string, Documento[]>, doc) => {
-    const dateKey = doc.uploadDate.substring(0, 10);
+    const dateKey = doc.uploadDate ? doc.uploadDate.substring(0, 10) : "Sem Data";
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -186,6 +188,14 @@ export default function Documents() {
 
   // Helper to identify document type styling
   const getDocTypeInfo = (fileName: string) => {
+    if (!fileName) {
+      return {
+        color: "bg-gray-500/10 text-gray-500 border-gray-200 dark:border-gray-900/30",
+        iconColor: "text-gray-500",
+        label: "DESCONHECIDO",
+        badge: "bg-gray-100 text-gray-700 dark:bg-gray-950/40 dark:text-gray-400"
+      };
+    }
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (ext === 'pdf') {
       return {

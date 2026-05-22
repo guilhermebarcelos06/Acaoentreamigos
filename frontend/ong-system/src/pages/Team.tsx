@@ -116,7 +116,7 @@ export default function Team() {
         const perms = permsData?.filter((perm: PermissaoPerfil) => perm.perfil_id === p.id) || [];
         return { 
           ...p, 
-          email: p.email || `${p.nome.toLowerCase().replace(/\s+/g, '')}@acaoentreamigos.org`, 
+          email: p.email || `${(p.nome || '').toLowerCase().replace(/\s+/g, '')}@acaoentreamigos.org`, 
           permissoes: perms 
         };
       });
@@ -253,7 +253,15 @@ export default function Team() {
         p_permissoes: moduloPermsArray,
       });
 
-      if (error) throw error;
+      if (error) {
+        let msgErro = error.message;
+        if (error.message.includes("Senha de confirmação incorreta")) {
+          msgErro = "Sua senha de confirmação de segurança está incorreta.";
+        } else if (error.message.includes("Apenas o Admin Master")) {
+          msgErro = "Operação negada: Apenas o Admin Master possui privilégios para promover membros a Admin Master ou Administrador.";
+        }
+        throw new Error(msgErro);
+      }
 
       setMensagem({ tipo: 'ok', texto: 'Usuário atualizado com sucesso!' });
       setModalAberto(null);
@@ -298,9 +306,9 @@ export default function Team() {
 
   const usuariosFiltrados = usuarios.filter(
     (u) =>
-      u.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      u.email.toLowerCase().includes(busca.toLowerCase()) ||
-      CARGO_LABELS[u.cargo].toLowerCase().includes(busca.toLowerCase())
+      (u.nome || "").toLowerCase().includes(busca.toLowerCase()) ||
+      (u.email || "").toLowerCase().includes(busca.toLowerCase()) ||
+      (CARGO_LABELS[u.cargo] || "").toLowerCase().includes(busca.toLowerCase())
   );
 
   const podeGerenciar = isAdmin || isAdminMaster;

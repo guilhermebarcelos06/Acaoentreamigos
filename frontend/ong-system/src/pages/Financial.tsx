@@ -23,8 +23,8 @@ export default function Financial() {
   }, []);
 
   const filteredTransactions = transactionList.filter(t => 
-    t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.type.toLowerCase().includes(searchTerm.toLowerCase())
+    (t.description || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (t.type || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Máscara monetária em tempo real no padrão pt-BR (ex: 1.500,00)
@@ -227,15 +227,17 @@ export default function Financial() {
   };
 
   const totalEntradas = transactionList
-    .filter(t => t.type === 'Entrada')
+    .filter(t => t && t.type === 'Entrada')
     .reduce((acc, t) => {
+      if (!t || !t.value) return acc;
       const valueNum = parseFloat(t.value.replace(/\./g, '').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
       return acc + valueNum;
     }, 0);
 
   const totalSaidas = transactionList
-    .filter(t => t.type === 'Saída')
+    .filter(t => t && t.type === 'Saída')
     .reduce((acc, t) => {
+      if (!t || !t.value) return acc;
       const valueNum = parseFloat(t.value.replace(/\./g, '').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
       return acc + valueNum;
     }, 0);
@@ -249,7 +251,7 @@ export default function Financial() {
           <h1 className="text-2xl font-bold text-foreground">Financeiro & Fluxo de Caixa</h1>
           <p className="text-sm text-muted-foreground">Gerencie entradas, saídas e recibos (notas fiscais).</p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <button 
             onClick={gerarExtratoPDF}
             className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 border rounded-md font-medium text-sm hover:bg-muted/50 transition-colors bg-card text-foreground"

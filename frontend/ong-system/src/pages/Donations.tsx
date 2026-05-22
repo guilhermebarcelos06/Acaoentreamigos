@@ -27,8 +27,8 @@ export default function Donations() {
   }, []);
 
   const filteredCampaigns = campaignList.filter(campaign => 
-    campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    campaign.category.toLowerCase().includes(searchTerm.toLowerCase())
+    (campaign.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (campaign.category || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getRemainingDays = (deadlineStr: string) => {
@@ -158,7 +158,7 @@ export default function Donations() {
           <h1 className="text-2xl font-bold text-foreground">Campanhas e Doações</h1>
           <p className="text-sm text-muted-foreground">Acompanhe as metas e o que foi doado recentemente.</p>
         </div>
-        <div className="flex gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:flex-initial">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input 

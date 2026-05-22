@@ -21,12 +21,13 @@ export default function Overview({ setActiveTab }: { setActiveTab: (tab: string)
   }, []);
 
   const saldoAtual = transactions.reduce((acc, t) => {
+    if (!t || !t.value) return acc;
     const valueNum = parseFloat(t.value.replace(/\./g, '').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
     return acc + (t.type === 'Entrada' ? valueNum : -valueNum);
   }, 0);
 
-  const doacoesMes = transactions.filter(t => t.type === 'Entrada').length;
-  const voluntariosAtivos = volunteers.filter(v => v.status === 'Ativo').length;
+  const doacoesMes = transactions.filter(t => t && t.type === 'Entrada').length;
+  const voluntariosAtivos = volunteers.filter(v => v && v.status === 'Ativo').length;
 
   const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   const currentMonth = new Date().getMonth();
@@ -43,11 +44,13 @@ export default function Overview({ setActiveTab }: { setActiveTab: (tab: string)
 
     // Sum transactions for this month
     const monthTransactions = transactions.filter(t => {
+      if (!t || !t.date) return false;
       const tDate = t.date.split('/'); // DD/MM/YYYY
-      return parseInt(tDate[1]) === mIndex && parseInt(tDate[2]) === year;
+      return tDate.length === 3 && parseInt(tDate[1]) === mIndex && parseInt(tDate[2]) === year;
     });
 
     const total = monthTransactions.reduce((acc, t) => {
+      if (!t || !t.value) return acc;
       const valueNum = parseFloat(t.value.replace(/\./g, '').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
       return acc + (t.type === 'Entrada' ? valueNum : -valueNum);
     }, 0);
@@ -61,9 +64,9 @@ export default function Overview({ setActiveTab }: { setActiveTab: (tab: string)
   }
 
   const goalsData = campaigns.slice(0, 4).map(c => ({
-    name: c.title.substring(0, 10),
-    current: c.current,
-    max: c.total
+    name: c && c.title ? c.title.substring(0, 10) : "Sem Título",
+    current: c ? (c.current || 0) : 0,
+    max: c ? (c.total || 0) : 0
   }));
   return (
     <div className="space-y-6">

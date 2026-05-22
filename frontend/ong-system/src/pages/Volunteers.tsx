@@ -14,8 +14,8 @@ export default function Volunteers() {
   }, []);
 
   const filteredVolunteers = volunteerList.filter(v => 
-    v.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.skills.toLowerCase().includes(searchTerm.toLowerCase())
+    (v.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (v.skills || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
