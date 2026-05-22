@@ -56,7 +56,7 @@ function writeData(data) {
 }
 
 // Routes
-app.get('/health', (req, res) => {
+app.get('/api/status', (req, res) => {
   res.json({ status: 'ok' });
 });
 

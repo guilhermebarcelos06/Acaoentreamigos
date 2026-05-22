@@ -19,7 +19,7 @@ export default function BackendStatusGate({ children }: BackendStatusGateProps) 
       const controller = new AbortController();
       const id = setTimeout(() => controller.abort(), 4000); // 4s timeout for each ping
 
-      const res = await fetch(`${API_BASE_URL}/health`, {
+      const res = await fetch(`${API_BASE_URL}/api/status`, {
         signal: controller.signal,
         headers: { 'Cache-Control': 'no-cache' }
       });
