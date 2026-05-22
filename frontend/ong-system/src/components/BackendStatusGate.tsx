@@ -46,13 +46,19 @@ export default function BackendStatusGate({ children }: BackendStatusGateProps) 
       if (!active) return;
 
       if (awake) {
-        setProgress(100);
-        setTimeout(() => {
-          if (active) setIsAwake(true);
-        }, 800); // Small delay to let user see 100% success state
+        if (isFirstCheck) {
+          // Se o servidor já estava acordado no carregamento inicial, libera imediatamente sem piscar telas
+          setIsAwake(true);
+        } else {
+          // Se estava na tela de carregamento, mostra 100% de progresso e depois libera de forma suave
+          setProgress(100);
+          setTimeout(() => {
+            if (active) setIsAwake(true);
+          }, 800);
+        }
       } else {
         if (isFirstCheck) {
-          // If first check fails, we immediately set awake state to false to show screen
+          // Se a primeira verificação falhar (ex: erro de rede imediato), já ativa a tela de carregamento
           setIsAwake(false);
         }
         setErrorCount((prev) => prev + 1);
@@ -106,21 +112,15 @@ export default function BackendStatusGate({ children }: BackendStatusGateProps) 
     }
   };
 
-  // 1. Initial State: Check if server is already awake. 
-  // We use a small delay of 1.2s before displaying anything to avoid screen flashing
+  // 1. Estado Inicial: Verifica se o servidor já está acordado.
+  // Durante o primeiro segundo, não renderizamos nada (retornando null) para evitar
+  // qualquer piscada de tela caso o servidor já esteja pronto (resposta em ~100ms).
   if (isAwake === null) {
-    if (elapsedTime < 1.2) {
-      // Just keep rendering nothing or a simple invisible layout to prevent visual flash
-      return (
-        <div className="min-h-screen w-full bg-[#0B0F19] flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-            <span className="text-sm text-slate-400 font-medium animate-pulse">Conectando...</span>
-          </div>
-        </div>
-      );
+    if (elapsedTime < 1.0) {
+      return null;
     } else {
-      // If 1.2 seconds passed and it hasn't resolved yet, trigger the waking screen
+      // Se passar de 1 segundo sem resposta, significa que o servidor está dormindo (Render cold-start)
+      // Ativamos explicitamente o estado para mostrar a tela de carregamento premium
       setIsAwake(false);
     }
   }
