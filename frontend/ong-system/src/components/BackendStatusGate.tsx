@@ -183,13 +183,13 @@ export default function BackendStatusGate({ children }: BackendStatusGateProps) 
         {/* Header */}
         <div className="space-y-2">
           <h2 className="text-xl font-bold text-slate-100 tracking-tight flex items-center justify-center gap-2">
-            <span>Acordando o Servidor</span>
+            <span>Backend acordando/ligando</span>
             {progress < 100 && (
               <Loader2 className="w-4.5 h-4.5 text-indigo-400 animate-spin" />
             )}
           </h2>
           <p className="text-xs text-slate-400 leading-relaxed px-2">
-            Nosso backend gratuito no <strong className="text-indigo-400 font-semibold">Render</strong> dorme após 15 minutos sem uso. Estamos reativando ele automaticamente para você!
+            Tenham um ótimo uso!
           </p>
         </div>
 
