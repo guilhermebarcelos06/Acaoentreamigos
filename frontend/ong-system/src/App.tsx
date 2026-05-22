@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield } from "lucide-react";
 import Overview from "./pages/Overview";
 import Donations from "./pages/Donations";
 import Financial from "./pages/Financial";
 import Volunteers from "./pages/Volunteers";
 import TeamPage from "./pages/Team";
 import SettingsPage from "./pages/Settings";
+import Login from "./pages/Login";
+import { useAuth, AuthProvider } from "./contexts/AuthContext";
+import { CARGO_COLORS, CARGO_LABELS } from "./lib/supabase";
 
 interface Tab {
   id: string;

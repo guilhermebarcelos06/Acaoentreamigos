@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   UserPlus,
-  Shield,
   Pencil,
   Trash2,
   X,
