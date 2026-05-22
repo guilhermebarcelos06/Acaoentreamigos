@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield, Menu, X } from "lucide-react";
 import Overview from "./pages/Overview";
 import Donations from "./pages/Donations";
 import Financial from "./pages/Financial";
@@ -30,6 +30,38 @@ const ALL_TABS: Tab[] = [
 function AppInner() {
   const { session, perfil, loading, signOut, podeFazer, isAdmin, isAdminMaster } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Efeito para carregar e gerenciar o tema escuro/claro
+  useEffect(() => {
+    const aplicarTema = () => {
+      const temaSalvo = localStorage.getItem('theme') || 'light';
+      if (
+        temaSalvo === 'dark' ||
+        (temaSalvo === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    aplicarTema();
+
+    window.addEventListener('theme-change', aplicarTema);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = () => {
+      if (localStorage.getItem('theme') === 'system') {
+        aplicarTema();
+      }
+    };
+    mediaQuery.addEventListener('change', handleSystemChange);
+
+    return () => {
+      window.removeEventListener('theme-change', aplicarTema);
+      mediaQuery.removeEventListener('change', handleSystemChange);
+    };
+  }, []);
 
   // Aguarda carregamento inicial
   if (loading) {
@@ -74,27 +106,74 @@ function AppInner() {
     : tabsVisiveis[0]?.id ?? 'overview';
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-hidden font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 flex flex-col border-r bg-card h-full">
-        {/* Logo */}
-        <div className="p-5 flex items-center gap-3 border-b">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-background overflow-hidden font-sans">
+      {/* Header Móvel */}
+      <header className="flex md:hidden items-center justify-between px-5 py-4 border-b bg-card w-full flex-shrink-0 z-30 shadow-sm">
+        <div className="flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"
+            className="w-8.5 h-8.5 rounded-xl flex items-center justify-center shadow-md"
             style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}
           >
-            <Heart className="w-4.5 h-4.5 text-white fill-white" />
+            <Heart className="w-4 h-4 text-white fill-white" />
           </div>
           <div>
-            <span className="font-bold text-sm leading-tight block">
+            <span className="font-bold text-sm leading-none block">
               Ação Entre Amigos
             </span>
-            <span className="text-[10px] text-muted-foreground">Sistema ONG</span>
+            <span className="text-[9px] text-muted-foreground">Sistema ONG</span>
           </div>
+        </div>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 rounded-xl border bg-muted/30 hover:bg-muted text-foreground transition-colors"
+          aria-label="Abrir menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </header>
+
+      {/* Backdrop para mobile com transição suave */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-xs transition-opacity duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Fixa no desktop, gaveta deslizante no mobile */}
+      <aside
+        className={`fixed inset-y-0 left-0 w-64 flex flex-col border-r bg-card h-full z-50 transform transition-transform duration-300 md:relative md:translate-x-0 md:z-0 ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        {/* Logo */}
+        <div className="p-5 flex items-center justify-between border-b flex-shrink-0 font-sans">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}
+            >
+              <Heart className="w-4.5 h-4.5 text-white fill-white" />
+            </div>
+            <div>
+              <span className="font-bold text-sm leading-tight block">
+                Ação Entre Amigos
+              </span>
+              <span className="text-[10px] text-muted-foreground">Sistema ONG</span>
+            </div>
+          </div>
+          {/* Botão de Fechar para Mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden p-1.5 rounded-lg border hover:bg-muted text-muted-foreground transition-colors"
+            aria-label="Fechar menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Navegação */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {tabsVisiveis.map((tab) => {
             const Icon = tab.icon;
             const isActive = tabAtiva === tab.id;
@@ -102,7 +181,10 @@ function AppInner() {
               <button
                 key={tab.id}
                 id={`nav-${tab.id}`}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-primary/10 text-primary shadow-sm'
@@ -121,7 +203,7 @@ function AppInner() {
 
         {/* Perfil do usuário logado */}
         {perfil && (
-          <div className="p-3 border-t space-y-2">
+          <div className="p-3 border-t space-y-2 flex-shrink-0">
             <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-muted/30">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
                 {perfil.nome.charAt(0).toUpperCase()}
@@ -147,7 +229,7 @@ function AppInner() {
             <button
               id="btn-sair"
               onClick={() => signOut()}
-              className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-colors"
+              className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-muted-foreground hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Sair
@@ -157,8 +239,8 @@ function AppInner() {
       </aside>
 
       {/* Conteúdo principal */}
-      <main className="flex-1 h-full overflow-y-auto bg-[#F8FAFC]">
-        <div className="p-8 max-w-7xl mx-auto min-h-full">
+      <main className="flex-1 h-full overflow-y-auto bg-[#F8FAFC] dark:bg-background">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto min-h-full">
           {tabAtiva === 'overview' && <Overview setActiveTab={setActiveTab} />}
           {tabAtiva === 'donations' && <Donations />}
           {tabAtiva === 'financial' && <Financial />}
@@ -180,4 +262,5 @@ export default function App() {
     </BackendStatusGate>
   );
 }
+
 

@@ -3,13 +3,20 @@ import { Settings as SettingsIcon, Database, Laptop, Info, Check, AlertCircle } 
 
 export default function Settings() {
   const [nomeOng, setNomeOng] = useState('Ação Entre Amigos');
-  const [tema, setTema] = useState('light');
+  const [tema, setTema] = useState(() => localStorage.getItem('theme') || 'light');
   const [salvando, setSalvando] = useState(false);
   const [sucesso, setSucesso] = useState(false);
 
   function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
     setSalvando(true);
+    
+    // Persiste a escolha do tema no localStorage
+    localStorage.setItem('theme', tema);
+    
+    // Dispara o evento para que o App.tsx atualize o tema imediatamente
+    window.dispatchEvent(new Event('theme-change'));
+
     setTimeout(() => {
       setSalvando(false);
       setSucesso(true);
@@ -18,7 +25,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Topo */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>
@@ -56,10 +63,10 @@ export default function Settings() {
                 <select
                   value={tema}
                   onChange={(e) => setTema(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className="w-full px-3 py-2 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-foreground"
                 >
                   <option value="light">Claro (Padrão)</option>
-                  <option value="dark">Escuro (Em Breve)</option>
+                  <option value="dark">Escuro</option>
                   <option value="system">Seguir Sistema</option>
                 </select>
               </div>
