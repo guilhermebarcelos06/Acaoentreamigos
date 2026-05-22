@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Package, Filter, Plus, CheckCircle2, Search, X } from "lucide-react";
+import { API_BASE_URL } from "../lib/api";
 
 const campaigns = [
   {
@@ -95,7 +96,7 @@ export default function Donations() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/campaigns')
+    fetch(`${API_BASE_URL}/api/campaigns`)
       .then(res => res.json())
       .then(data => setCampaignList(data))
       .catch(err => console.error("Error fetching campaigns:", err));
@@ -129,7 +130,7 @@ export default function Donations() {
       isCritical: currentNum < totalNum && (currentNum / totalNum) < 0.3,
     };
 
-    fetch('http://localhost:3001/api/campaigns', {
+    fetch(`${API_BASE_URL}/api/campaigns`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(campaignData)
@@ -162,7 +163,7 @@ export default function Donations() {
         statusText: (selectedCampaignForLaunch.current + amountNum) >= selectedCampaignForLaunch.total ? "Meta Atingida!" : "Falta Arrecadar"
       };
 
-      fetch(`http://localhost:3001/api/campaigns/${selectedCampaignForLaunch.id}`, {
+      fetch(`${API_BASE_URL}/api/campaigns/${selectedCampaignForLaunch.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedCampaign)

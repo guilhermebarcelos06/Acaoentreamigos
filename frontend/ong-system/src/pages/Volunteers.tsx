@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Search, ExternalLink, Link2, Users, CalendarDays, Mail } from "lucide-react";
+import { API_BASE_URL } from "../lib/api";
 
 export default function Volunteers() {
   const [volunteerList, setVolunteerList] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/volunteers')
+    fetch(`${API_BASE_URL}/api/volunteers`)
       .then(res => res.json())
       .then(data => setVolunteerList(data))
       .catch(err => console.error("Error fetching volunteers:", err));

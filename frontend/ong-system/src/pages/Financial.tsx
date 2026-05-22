@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Download, Search, Paperclip, FileText, X } from "lucide-react";
+import { API_BASE_URL } from "../lib/api";
 
 export default function Financial() {
   const [transactionList, setTransactionList] = useState<any[]>([]);
@@ -16,7 +17,7 @@ export default function Financial() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/transactions')
+    fetch(`${API_BASE_URL}/api/transactions`)
       .then(res => res.json())
       .then(data => setTransactionList(data))
       .catch(err => console.error("Error fetching transactions:", err));
@@ -40,7 +41,7 @@ export default function Financial() {
       hasReceipt: false
     };
 
-    fetch('http://localhost:3001/api/transactions', {
+    fetch(`${API_BASE_URL}/api/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(transactionData)

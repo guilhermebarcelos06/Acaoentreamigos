@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Wallet, Heart, Users, TrendingUp } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, XAxis as BarXAxis, YAxis as BarYAxis, LabelList } from "recharts";
+import { API_BASE_URL } from "../lib/api";
 
 export default function Overview({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -9,9 +10,9 @@ export default function Overview({ setActiveTab }: { setActiveTab: (tab: string)
 
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:3001/api/campaigns').then(res => res.json()),
-      fetch('http://localhost:3001/api/transactions').then(res => res.json()),
-      fetch('http://localhost:3001/api/volunteers').then(res => res.json())
+      fetch(`${API_BASE_URL}/api/campaigns`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/transactions`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/api/volunteers`).then(res => res.json())
     ]).then(([campaignsData, transactionsData, volunteersData]) => {
       setCampaigns(campaignsData);
       setTransactions(transactionsData);
