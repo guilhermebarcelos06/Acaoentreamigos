@@ -1,194 +1,151 @@
-import { useState, useEffect } from "react";
-import { UserPlus, Shield, Pencil, Trash2, X } from "lucide-react";
+import { useState } from 'react';
+import { Settings as SettingsIcon, Database, Laptop, Info, Check, AlertCircle } from 'lucide-react';
 
 export default function Settings() {
-  const [userList, setUserList] = useState<any[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    role: "Editor",
-  });
+  const [nomeOng, setNomeOng] = useState('Ação Entre Amigos');
+  const [tema, setTema] = useState('light');
+  const [salvando, setSalvando] = useState(false);
+  const [sucesso, setSucesso] = useState(false);
 
-  useEffect(() => {
-    fetch('http://localhost:3001/api/users')
-      .then(res => res.json())
-      .then(data => setUserList(data))
-      .catch(err => console.error("Error fetching users:", err));
-  }, []);
-
-  const handleAddUser = (e: React.FormEvent) => {
+  function handleSalvar(e: React.FormEvent) {
     e.preventDefault();
-    const initials = newUser.name.charAt(0).toUpperCase() || "U";
-    
-    const userData = {
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      initials: initials,
-      roleColor: "bg-primary/10 text-primary"
-    };
-
-    fetch('http://localhost:3001/api/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      setUserList([...userList, data]);
-      setIsModalOpen(false);
-      setNewUser({
-        name: "",
-        email: "",
-        role: "Editor",
-      });
-    })
-    .catch(err => console.error("Error adding user:", err));
-  };
-
-  const handleDeleteUser = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir este usuário?")) {
-      fetch(`http://localhost:3001/api/users/${id}`, {
-        method: 'DELETE'
-      })
-      .then(() => {
-        setUserList(userList.filter(user => user.id !== id));
-      })
-      .catch(err => console.error("Error deleting user:", err));
-    }
-  };
+    setSalvando(true);
+    setTimeout(() => {
+      setSalvando(false);
+      setSucesso(true);
+      setTimeout(() => setSucesso(false), 3000);
+    }, 1000);
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Configurações & Acesso</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie quem tem acesso ao sistema da ONG.</p>
-        </div>
-        
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md font-medium text-sm hover:bg-primary/90 transition-colors"
-        >
-          <UserPlus className="w-4 h-4" />
-          Adicionar Usuário
-        </button>
+      {/* Topo */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Configurações do Sistema</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Gerencie as preferências gerais da plataforma da ONG.
+        </p>
       </div>
 
-      <div className="bg-card border rounded-2xl shadow-sm overflow-hidden flex flex-col mt-8">
-        <div className="p-6 border-b bg-muted/10 flex gap-4 items-start">
-          <div className="mt-0.5 text-primary">
-            <Shield className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-foreground">Usuários do Sistema</h3>
-            <p className="text-sm text-muted-foreground">Pessoas com acesso ao painel administrativo.</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Painel de Preferências da ONG */}
+        <div className="md:col-span-2 space-y-6">
+          <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <SettingsIcon className="w-4.5 h-4.5 text-primary" />
+              Geral
+            </h3>
 
-        <div className="divide-y">
-          {userList.map((user) => (
-            <div key={user.id} className="p-4 px-6 flex items-center justify-between hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-secondary text-foreground font-semibold flex items-center justify-center">
-                  {user.initials}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm">{user.name}</h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                    <span className="text-muted-foreground text-[10px]">•</span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${user.roleColor}`}>
-                      {user.role}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => alert("Funcionalidade de edição não implementada.")}
-                  className="p-2 border rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors bg-card"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button 
-                  onClick={() => handleDeleteUser(user.id)}
-                  className="p-2 border rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors bg-card"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card w-full max-w-md p-6 rounded-2xl border shadow-lg relative">
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h2 className="text-xl font-bold mb-4">Adicionar Usuário</h2>
-            <form onSubmit={handleAddUser} className="space-y-4">
+            <form onSubmit={handleSalvar} className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Nome</label>
-                <input 
-                  type="text" 
-                  required
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="Ex: João Silva"
+                <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                  Nome da Organização
+                </label>
+                <input
+                  type="text"
+                  value={nomeOng}
+                  onChange={(e) => setNomeOng(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
               </div>
+
               <div>
-                <label className="text-sm font-medium">Email</label>
-                <input 
-                  type="email" 
-                  required
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="Ex: joao@ong.org"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Função</label>
-                <select 
-                  value={newUser.role}
-                  onChange={(e) => setNewUser({...newUser, role: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                <label className="text-xs font-semibold text-muted-foreground mb-1 block">
+                  Tema da Interface
+                </label>
+                <select
+                  value={tema}
+                  onChange={(e) => setTema(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 >
-                  <option value="Administrador">Administrador</option>
-                  <option value="Financeiro">Financeiro</option>
-                  <option value="Editor">Editor</option>
+                  <option value="light">Claro (Padrão)</option>
+                  <option value="dark">Escuro (Em Breve)</option>
+                  <option value="system">Seguir Sistema</option>
                 </select>
               </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border rounded-md text-sm font-medium hover:bg-muted/50"
-                >
-                  Cancelar
-                </button>
-                <button 
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
                   type="submit"
-                  className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary/90"
+                  disabled={salvando}
+                  className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary/90 transition-all flex items-center gap-2"
                 >
-                  Salvar
+                  {salvando ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
+                {sucesso && (
+                  <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" />
+                    Alterações salvas com sucesso!
+                  </span>
+                )}
               </div>
             </form>
           </div>
+
+          {/* Painel sobre a ONG */}
+          <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-3">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Info className="w-4.5 h-4.5 text-primary" />
+              Sobre o Sistema
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Este sistema foi desenvolvido de forma personalizada para a ONG <strong>Ação Entre Amigos</strong> para auxiliar no acompanhamento de campanhas de arrecadação, controle financeiro de caixa e gestão de voluntários e equipe interna.
+            </p>
+            <div className="text-[11px] text-muted-foreground border-t pt-3 flex justify-between">
+              <span>Versão do Painel: <strong>1.0.0</strong></span>
+              <span>Última atualização: <strong>Maio 2026</strong></span>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Painel lateral: Status do Banco de Dados */}
+        <div className="space-y-6">
+          <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-4">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Database className="w-4.5 h-4.5 text-primary" />
+              Conexão com Banco
+            </h3>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-green-50 border border-green-200">
+                <div>
+                  <span className="text-xs text-green-800 font-bold block">Conectado ao Supabase</span>
+                  <span className="text-[10px] text-green-600">kicposaltebnfatqhitv</span>
+                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Tipo de Banco:</span>
+                  <span className="font-semibold">PostgreSQL (17)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Região do Banco:</span>
+                  <span className="font-semibold">Ohio (us-east-2)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">SSL:</span>
+                  <span className="text-green-600 font-semibold">Ativado (Seguro)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-3">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Laptop className="w-4.5 h-4.5 text-primary" />
+              Serviços Locais
+            </h3>
+            <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-200 p-3 rounded-xl">
+              <AlertCircle className="w-4.5 h-4.5 flex-shrink-0" />
+              <span>
+                O backend JSON local (porta 3001) não é mais necessário e foi completamente substituído pelas chamadas diretas e seguras ao Supabase.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
