@@ -86,6 +86,12 @@ export default function Team() {
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null);
 
+  // Novos estados para segurança e exclusão
+  const [senhaConfirmacao, setSenhaConfirmacao] = useState('');
+  const [usuarioDeletando, setUsuarioDeletando] = useState<UsuarioCompleto | null>(null);
+  const [senhaConfirmacaoDelete, setSenhaConfirmacaoDelete] = useState('');
+  const [excluindo, setExcluindo] = useState(false);
+
   const [form, setForm] = useState<NovoUsuarioForm>({
     nome: '',
     email: '',
@@ -98,9 +104,7 @@ export default function Team() {
     setLoading(true);
     try {
       const { data: perfisData, error } = await supabase
-        .from('perfis')
-        .select('*')
-        .order('criado_em', { ascending: true });
+        .rpc('listar_membros_equipe');
 
       if (error) throw error;
 
@@ -108,11 +112,13 @@ export default function Team() {
         .from('permissoes_perfil')
         .select('*');
 
-      // Em produção real com supabase RLS/Auth, o email vem do auth.users se buscado via Admin,
-      // ou podemos salvar opcionalmente um campo espelho. Adicionamos fallback amigável.
-      const perfisComEmail: UsuarioCompleto[] = perfisData.map((p: Perfil) => {
+      const perfisComEmail: UsuarioCompleto[] = (perfisData || []).map((p: any) => {
         const perms = permsData?.filter((perm: PermissaoPerfil) => perm.perfil_id === p.id) || [];
-        return { ...p, email: (p as any).email || `${p.nome.toLowerCase().replace(/\s+/g, '')}@acaoentreamigos.org`, permissoes: perms };
+        return { 
+          ...p, 
+          email: p.email || `${p.nome.toLowerCase().replace(/\s+/g, '')}@acaoentreamigos.org`, 
+          permissoes: perms 
+        };
       });
 
       setUsuarios(perfisComEmail);
@@ -202,6 +208,7 @@ export default function Team() {
 
   function abrirEdicao(usuario: UsuarioCompleto) {
     setUsuarioEditando(usuario);
+    setSenhaConfirmacao('');
     const permMap = permMapVazio();
     usuario.permissoes.forEach((p) => {
       permMap[p.modulo] = {
@@ -214,7 +221,7 @@ export default function Team() {
     setForm({
       nome: usuario.nome,
       email: usuario.email,
-      senha: '',
+      senha: '', // Usado como nova senha opcional
       cargo: usuario.cargo,
       permissoes: permMap,
     });
@@ -228,25 +235,7 @@ export default function Team() {
     setMensagem(null);
 
     try {
-      if (usuarioEditando.cargo === 'admin_master' && !isAdminMaster) {
-        throw new Error('Apenas o Admin Master pode alterar seu próprio cadastro.');
-      }
-      if ((form.cargo === 'admin_master' || form.cargo === 'admin') && !isAdminMaster) {
-        throw new Error('Apenas o Admin Master pode promover membros a Administrador.');
-      }
-
-      await supabase
-        .from('perfis')
-        .update({ nome: form.nome, cargo: form.cargo })
-        .eq('id', usuarioEditando.id);
-
-      await supabase
-        .from('permissoes_perfil')
-        .delete()
-        .eq('perfil_id', usuarioEditando.id);
-
-      const inserts = MODULOS.map((m) => ({
-        perfil_id: usuarioEditando.id,
+      const moduloPermsArray = MODULOS.map((m) => ({
         modulo: m,
         pode_ver: form.permissoes[m].ver,
         pode_criar: form.permissoes[m].criar,
@@ -254,11 +243,22 @@ export default function Team() {
         pode_excluir: form.permissoes[m].excluir,
       }));
 
-      await supabase.from('permissoes_perfil').insert(inserts);
+      const { error } = await supabase.rpc('editar_membro_equipe', {
+        p_caller_password: senhaConfirmacao,
+        p_target_user_id: usuarioEditando.id,
+        p_new_nome: form.nome,
+        p_new_email: form.email,
+        p_new_cargo: form.cargo,
+        p_new_password: form.senha || null,
+        p_permissoes: moduloPermsArray,
+      });
+
+      if (error) throw error;
 
       setMensagem({ tipo: 'ok', texto: 'Usuário atualizado com sucesso!' });
       setModalAberto(null);
       setUsuarioEditando(null);
+      setSenhaConfirmacao('');
       await carregarUsuarios();
     } catch (err: any) {
       setMensagem({ tipo: 'erro', texto: err.message || 'Erro ao salvar.' });
@@ -267,21 +267,14 @@ export default function Team() {
     }
   }
 
-  async function deletarUsuario(usuario: UsuarioCompleto) {
+  function iniciarDelecao(usuario: UsuarioCompleto) {
     if (usuario.cargo === 'admin_master') {
       setMensagem({ tipo: 'erro', texto: 'Não é possível remover o Admin Master do sistema.' });
       return;
     }
-    if (!confirm(`Remover "${usuario.nome}" da equipe? Esta pessoa perderá o acesso imediatamente.`)) return;
-
-    try {
-      const { error } = await supabase.from('perfis').delete().eq('id', usuario.id);
-      if (error) throw error;
-      setMensagem({ tipo: 'ok', texto: 'Usuário removido com sucesso.' });
-      await carregarUsuarios();
-    } catch (err: any) {
-      setMensagem({ tipo: 'erro', texto: err.message || 'Erro ao remover usuário.' });
-    }
+    setUsuarioDeletando(usuario);
+    setSenhaConfirmacaoDelete('');
+    setMensagem(null);
   }
 
   function resetForm() {
@@ -292,6 +285,8 @@ export default function Team() {
       cargo: 'editor',
       permissoes: permMapPorCargo('editor'),
     });
+    setSenhaConfirmacao('');
+    setSenhaConfirmacaoDelete('');
   }
 
   function fecharModal() {
@@ -419,8 +414,8 @@ export default function Team() {
               const isAM = usuario.cargo === 'admin_master';
               
               // Regras de Edição / Deleção baseado em hierarquia
-              const podeEditar = podeGerenciar && !isMe && (isAdminMaster || (!isAM && usuario.cargo !== 'admin'));
-              const podeDeletar = isAdminMaster && !isMe && !isAM;
+              const podeEditar = isAdminMaster || (isAdmin && (usuario.cargo !== 'admin_master' && (usuario.cargo !== 'admin' || isMe)));
+              const podeDeletar = !isMe && !isAM && (isAdminMaster || (isAdmin && usuario.cargo !== 'admin'));
 
               return (
                 <div
@@ -465,14 +460,14 @@ export default function Team() {
                       <button
                         onClick={() => abrirEdicao(usuario)}
                         className="p-2 border rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 hover:border-primary/30 transition-all bg-card"
-                        title="Editar permissões"
+                        title="Editar membro e permissões"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                     )}
                     {podeDeletar && (
                       <button
-                        onClick={() => deletarUsuario(usuario)}
+                        onClick={() => iniciarDelecao(usuario)}
                         className="p-2 border rounded-xl text-muted-foreground hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all bg-card"
                         title="Remover da equipe"
                       >
@@ -544,10 +539,9 @@ export default function Team() {
                   <input
                     type="email"
                     required
-                    disabled={modalAberto === 'editar'}
                     value={form.email}
                     onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     placeholder="exemplo@ong.org"
                   />
                 </div>
@@ -571,6 +565,27 @@ export default function Team() {
                   />
                   <p className="text-xs text-muted-foreground mt-1.5">
                     Defina uma senha inicial. O usuário poderá alterá-la futuramente após o primeiro acesso.
+                  </p>
+                </div>
+              )}
+
+              {/* Alterar Senha (Apenas Edição) */}
+              {modalAberto === 'editar' && (
+                <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
+                  <label className="text-xs font-semibold text-primary uppercase tracking-wider mb-1.5 block flex items-center gap-1.5">
+                    <KeyRound className="w-4 h-4" />
+                    Alterar Senha do Membro
+                  </label>
+                  <input
+                    type="password"
+                    minLength={6}
+                    value={form.senha}
+                    onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+                    className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    placeholder="Mínimo de 6 caracteres (deixe em branco para manter a atual)"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    Se preenchida, alterará a senha de acesso deste membro imediatamente.
                   </p>
                 </div>
               )}
@@ -679,6 +694,27 @@ export default function Team() {
                 </div>
               </div>
 
+              {/* Confirmação de Senha do Administrador Logado (Apenas Edição) */}
+              {modalAberto === 'editar' && (
+                <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20 space-y-3">
+                  <label className="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider flex items-center gap-1.5">
+                    <ShieldAlert className="w-4 h-4" />
+                    Confirmação de Segurança
+                  </label>
+                  <p className="text-xs text-muted-foreground">
+                    Para aplicar as alterações, por favor confirme a <strong>sua senha</strong> de acesso atual.
+                  </p>
+                  <input
+                    type="password"
+                    required
+                    value={senhaConfirmacao}
+                    onChange={(e) => setSenhaConfirmacao(e.target.value)}
+                    className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                    placeholder="Digite sua senha atual"
+                  />
+                </div>
+              )}
+
               {/* Botões do Rodapé */}
               <div className="flex justify-end gap-3 pt-3 border-t">
                 <button
@@ -707,6 +743,99 @@ export default function Team() {
                     <>
                       <Check className="w-4 h-4" />
                       Salvar Alterações
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE DELEÇÃO */}
+      {usuarioDeletando && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-card w-full max-w-md rounded-2xl border border-red-500/20 shadow-2xl relative overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+              <h2 className="text-lg font-bold text-red-600 dark:text-red-500 flex items-center gap-2">
+                <Trash2 className="w-5 h-5" />
+                Excluir Membro da Equipe
+              </h2>
+              <button
+                onClick={() => setUsuarioDeletando(null)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setExcluindo(true);
+                setMensagem(null);
+                try {
+                  const { error } = await supabase.rpc('deletar_membro_equipe', {
+                    p_caller_password: senhaConfirmacaoDelete,
+                    p_target_user_id: usuarioDeletando.id,
+                  });
+
+                  if (error) throw error;
+
+                  setMensagem({ tipo: 'ok', texto: 'Membro da equipe removido com sucesso!' });
+                  setUsuarioDeletando(null);
+                  await carregarUsuarios();
+                } catch (err: any) {
+                  setMensagem({ tipo: 'erro', texto: err.message || 'Erro ao remover membro.' });
+                } finally {
+                  setExcluindo(false);
+                }
+              }}
+              className="p-6 space-y-4"
+            >
+              <p className="text-sm text-foreground">
+                Você está prestes a excluir <strong>{usuarioDeletando.nome}</strong> ({usuarioDeletando.email}) da equipe.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Esta ação é irreversível. O usuário perderá o acesso ao painel imediatamente e todos os seus dados de perfil serão apagados.
+              </p>
+
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+                  Sua Senha de Acesso
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={senhaConfirmacaoDelete}
+                  onChange={(e) => setSenhaConfirmacaoDelete(e.target.value)}
+                  className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                  placeholder="Confirme sua senha para prosseguir"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t">
+                <button
+                  type="button"
+                  onClick={() => setUsuarioDeletando(null)}
+                  className="px-4 py-2 border rounded-xl text-sm font-medium hover:bg-muted/50 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={excluindo}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-medium transition-all flex items-center gap-2 disabled:opacity-60 shadow-sm"
+                >
+                  {excluindo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Confirmar Exclusão
                     </>
                   )}
                 </button>

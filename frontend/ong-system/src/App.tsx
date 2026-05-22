@@ -9,6 +9,7 @@ import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
 import { useAuth, AuthProvider } from "./contexts/AuthContext";
 import { CARGO_COLORS, CARGO_LABELS } from "./lib/supabase";
+import BackendStatusGate from "./components/BackendStatusGate";
 
 interface Tab {
   id: string;
@@ -172,9 +173,11 @@ function AppInner() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <BackendStatusGate>
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
+    </BackendStatusGate>
   );
 }
 

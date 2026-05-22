@@ -56,6 +56,10 @@ function writeData(data) {
 }
 
 // Routes
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.get('/api/campaigns', (req, res) => {
   const data = readData();
   res.json(data.campaigns);
