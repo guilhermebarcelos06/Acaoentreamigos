@@ -76,7 +76,7 @@ interface NovoUsuarioForm {
 }
 
 export default function Team() {
-  const { perfil: meuPerfil, isAdminMaster, isAdmin } = useAuth();
+  const { user, perfil: meuPerfil, isAdminMaster, isAdmin } = useAuth();
 
   const [usuarios, setUsuarios] = useState<UsuarioCompleto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -591,6 +591,7 @@ export default function Team() {
                     minLength={6}
                     value={form.senha}
                     onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+                    autoComplete="new-password"
                     className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     placeholder="Mínimo de 6 caracteres (deixe em branco para manter a atual)"
                   />
@@ -714,15 +715,16 @@ export default function Team() {
                     Confirmação de Segurança
                   </label>
                   <p className="text-xs text-muted-foreground">
-                    Para aplicar as alterações, por favor confirme a <strong>sua senha</strong> de acesso atual.
+                    Para aplicar as alterações, por favor confirme a <strong>sua senha</strong> de acesso atual {user?.email && <span>(sua conta logada: <strong>{user.email}</strong>)</span>}.
                   </p>
                   <input
                     type="password"
                     required
                     value={senhaConfirmacao}
                     onChange={(e) => setSenhaConfirmacao(e.target.value)}
+                    autoComplete="new-password"
                     className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
-                    placeholder="Digite sua senha atual"
+                    placeholder="Digite a sua senha atual"
                   />
                 </div>
               )}
@@ -814,15 +816,16 @@ export default function Team() {
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
-                  Sua Senha de Acesso
+                  Sua Senha de Acesso {user?.email && <span>(<strong>{user.email}</strong>)</span>}
                 </label>
                 <input
                   type="password"
                   required
                   value={senhaConfirmacaoDelete}
                   onChange={(e) => setSenhaConfirmacaoDelete(e.target.value)}
+                  autoComplete="new-password"
                   className="w-full px-3 py-2.5 border rounded-xl text-sm bg-background focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
-                  placeholder="Confirme sua senha para prosseguir"
+                  placeholder="Confirme a sua senha para prosseguir"
                 />
               </div>
 
