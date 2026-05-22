@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield, Menu, X } from "lucide-react";
+import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield, Menu, X, FileText } from "lucide-react";
 import Overview from "./pages/Overview";
 import Donations from "./pages/Donations";
 import Financial from "./pages/Financial";
 import Volunteers from "./pages/Volunteers";
+import Documents from "./pages/Documents";
 import TeamPage from "./pages/Team";
 import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
@@ -23,6 +24,7 @@ const ALL_TABS: Tab[] = [
   { id: 'donations', label: 'Doações', icon: Heart, modulo: 'doacoes' },
   { id: 'financial', label: 'Financeiro', icon: DollarSign, modulo: 'financeiro' },
   { id: 'volunteers', label: 'Voluntários', icon: Users, modulo: 'voluntarios' },
+  { id: 'documents', label: 'Documentos', icon: FileText, modulo: 'visao_geral' },
   { id: 'team', label: 'Equipe', icon: ShieldAlert, modulo: 'configuracoes' },
   { id: 'settings', label: 'Configurações', icon: Settings, modulo: 'configuracoes' },
 ];
@@ -245,6 +247,7 @@ function AppInner() {
           {tabAtiva === 'donations' && <Donations />}
           {tabAtiva === 'financial' && <Financial />}
           {tabAtiva === 'volunteers' && <Volunteers />}
+          {tabAtiva === 'documents' && <Documents />}
           {tabAtiva === 'team' && <TeamPage />}
           {tabAtiva === 'settings' && <SettingsPage />}
         </div>

@@ -2,12 +2,44 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    const filetypes = /pdf|doc|docx/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (extname || mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error('Apenas arquivos PDF e Word são permitidos!'));
+  },
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -41,7 +73,8 @@ function readData() {
         { id: 1, name: "Admin Principal", email: "admin@ong.org", role: "Administrador", initials: "A", roleColor: "bg-primary/10 text-primary" },
         { id: 2, name: "Financeiro ONG", email: "financas@ong.org", role: "Financeiro", initials: "F", roleColor: "bg-primary/10 text-primary" },
         { id: 3, name: "Coordenador de Doações", email: "doacoes@ong.org", role: "Editor", initials: "C", roleColor: "bg-primary/10 text-primary" }
-      ]
+      ],
+      documents: []
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
     return initialData;
@@ -126,6 +159,86 @@ app.delete('/api/users/:id', (req, res) => {
   data.users = data.users.filter(u => u.id !== id);
   writeData(data);
   res.status(204).send();
+});
+
+// Document endpoints
+app.get('/api/documents', (req, res) => {
+  const data = readData();
+  res.json(data.documents || []);
+});
+
+app.post('/api/documents', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "Nenhum arquivo enviado ou tipo de arquivo inválido." });
+    }
+    const { name, description } = req.body;
+    if (!name) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "O nome do documento é obrigatório." });
+    }
+
+    const data = readData();
+    if (!data.documents) {
+      data.documents = [];
+    }
+
+    // Format size
+    const sizeInMB = (req.file.size / (1024 * 1024)).toFixed(2);
+    const sizeFormatted = sizeInMB === '0.00' 
+      ? `${(req.file.size / 1024).toFixed(1)} KB` 
+      : `${sizeInMB} MB`;
+
+    const newDoc = {
+      id: data.documents.length > 0 ? Math.max(...data.documents.map(d => d.id)) + 1 : 1,
+      name: name,
+      description: description || "",
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      fileSize: sizeFormatted,
+      uploadDate: new Date().toISOString()
+    };
+
+    data.documents.push(newDoc);
+    writeData(data);
+
+    res.status(201).json(newDoc);
+  } catch (error) {
+    console.error("Error uploading document:", error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ message: "Erro interno no servidor ao realizar upload." });
+  }
+});
+
+app.delete('/api/documents/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const data = readData();
+    if (!data.documents) {
+      data.documents = [];
+    }
+    const docIndex = data.documents.findIndex(d => d.id === id);
+    if (docIndex !== -1) {
+      const doc = data.documents[docIndex];
+      const filePath = path.join(__dirname, 'uploads', doc.fileName);
+      
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+      
+      data.documents.splice(docIndex, 1);
+      writeData(data);
+      res.status(204).send();
+    } else {
+      res.status(404).json({ message: "Documento não encontrado." });
+    }
+  } catch (error) {
+    console.error("Error deleting document:", error);
+    res.status(500).json({ message: "Erro interno ao excluir o documento." });
+  }
 });
 
 app.listen(PORT, () => {
