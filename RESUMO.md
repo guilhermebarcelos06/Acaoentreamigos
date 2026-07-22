@@ -1,31 +1,25 @@
 # Resumo das Implementações
 
-Este resumo detalha as alterações feitas para criar o backend e integrá-lo com o frontend do sistema da ONG.
+> Este arquivo documentava a versão antiga do sistema (backend Express +
+> `data.json`). Essa arquitetura foi **substituída** por Supabase (Postgres +
+> Auth + Storage) — ver `DEV.md` para o guia atual de desenvolvimento local e
+> `scripts/README.md` para os scripts de migração/importação de dados.
+>
+> O conteúdo abaixo é histórico e está desatualizado.
 
-## Backend
-- Criado um servidor Express em `backend/index.js` rodando na porta 3001.
-- Endpoints implementados para:
-    - Campanhas (Listar, Criar, Atualizar)
-    - Transações (Listar, Criar)
-    - Voluntários (Listar)
-    - Usuários (Listar, Criar, Deletar)
+## Backend (descontinuado, ver `backend/DEPRECATED.md`)
+- Servidor Express em `backend/index.js` rodando na porta 3001.
+- Endpoints para Campanhas, Transações, Voluntários, Usuários.
 - Persistência de dados em arquivo JSON (`data.json`).
 
-## Frontend
-- Integração de todas as páginas com a API do backend:
-    - `Overview.tsx` (Dashboard dinâmico com cálculo de saldo e fluxo de caixa).
-    - `Donations.tsx` (Listagem e lançamento de doações para metas).
-    - `Financial.tsx` (Listagem, criação e resumo de transações dinâmicos).
-    - `Volunteers.tsx` (Listagem de voluntários).
-    - `Settings.tsx` (Gestão de usuários).
-- Correção de bug de localização no parse de valores monetários com ponto separador de milhar.
+## Frontend (reescrito para falar direto com Supabase)
+- Todas as páginas passaram a usar `src/lib/services/*.ts` (Supabase) em vez
+  de `fetch` para o backend Express.
+- Nova entidade **Campanha** unificando metas de itens e financeiro vinculado
+  (`Campaigns.tsx` + `CampaignDetail.tsx`, antes `Donations.tsx`).
+- Nova tela de **Preços de Referência** para estimar valor de doações em espécie.
+- PDFs de itens faltantes e resumo por campanha (`src/lib/pdf/`).
 
 ## Como Executar
-1. Na raiz do projeto, execute o backend:
-   ```powershell
-   node backend/index.js
-   ```
-2. Em outro terminal, na pasta `frontend/ong-system`, execute o frontend:
-   ```powershell
-   npm run dev
-   ```
+
+Ver `DEV.md` na raiz do repositório.

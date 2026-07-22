@@ -1,40 +1,47 @@
-import { useState, useEffect } from "react";
-import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield, Menu, X, FileText } from "lucide-react";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, NavLink, useLocation } from "react-router-dom";
+import { LayoutDashboard, Heart, DollarSign, Users, Settings, LogOut, ShieldAlert, Crown, Shield, Menu, X, FileText, Tag } from "lucide-react";
+import { useState } from "react";
 import Overview from "./pages/Overview";
-import Donations from "./pages/Donations";
+import Campaigns from "./pages/Campaigns";
+import CampaignDetail from "./pages/CampaignDetail";
 import Financial from "./pages/Financial";
 import Volunteers from "./pages/Volunteers";
 import Documents from "./pages/Documents";
+import PricingReference from "./pages/PricingReference";
 import TeamPage from "./pages/Team";
 import SettingsPage from "./pages/Settings";
 import Login from "./pages/Login";
 import { useAuth, AuthProvider } from "./contexts/AuthContext";
 import { CARGO_COLORS, CARGO_LABELS } from "./lib/supabase";
-import BackendStatusGate from "./components/BackendStatusGate";
 
-interface Tab {
-  id: string;
+interface NavItem {
+  path: string;
   label: string;
   icon: React.ElementType;
   modulo: 'visao_geral' | 'doacoes' | 'financeiro' | 'voluntarios' | 'configuracoes';
 }
 
-const ALL_TABS: Tab[] = [
-  { id: 'overview', label: 'Visão Geral', icon: LayoutDashboard, modulo: 'visao_geral' },
-  { id: 'donations', label: 'Doações', icon: Heart, modulo: 'doacoes' },
-  { id: 'financial', label: 'Financeiro', icon: DollarSign, modulo: 'financeiro' },
-  { id: 'volunteers', label: 'Voluntários', icon: Users, modulo: 'voluntarios' },
-  { id: 'documents', label: 'Documentos', icon: FileText, modulo: 'visao_geral' },
-  { id: 'team', label: 'Equipe', icon: ShieldAlert, modulo: 'configuracoes' },
-  { id: 'settings', label: 'Configurações', icon: Settings, modulo: 'configuracoes' },
+const ALL_NAV_ITEMS: NavItem[] = [
+  { path: '/', label: 'Visão Geral', icon: LayoutDashboard, modulo: 'visao_geral' },
+  { path: '/campanhas', label: 'Campanhas', icon: Heart, modulo: 'doacoes' },
+  { path: '/financeiro', label: 'Financeiro', icon: DollarSign, modulo: 'financeiro' },
+  { path: '/voluntarios', label: 'Voluntários', icon: Users, modulo: 'voluntarios' },
+  { path: '/documentos', label: 'Documentos', icon: FileText, modulo: 'visao_geral' },
+  { path: '/precos-referencia', label: 'Preços de Referência', icon: Tag, modulo: 'doacoes' },
+  { path: '/equipe', label: 'Equipe', icon: ShieldAlert, modulo: 'configuracoes' },
+  { path: '/configuracoes', label: 'Configurações', icon: Settings, modulo: 'configuracoes' },
 ];
 
 function AppInner() {
   const { session, perfil, loading, signOut, podeFazer, isAdmin, isAdminMaster } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
-  // Efeito para carregar e gerenciar o tema escuro/claro
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   useEffect(() => {
     const aplicarTema = () => {
       const temaSalvo = localStorage.getItem('theme') || 'light';
@@ -65,7 +72,6 @@ function AppInner() {
     };
   }, []);
 
-  // Aguarda carregamento inicial
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -91,25 +97,17 @@ function AppInner() {
     );
   }
 
-  // Não autenticado → tela de login
   if (!session) {
     return <Login />;
   }
 
-  // Abas visíveis conforme permissão
-  const tabsVisiveis = ALL_TABS.filter((tab) => {
+  const itensVisiveis = ALL_NAV_ITEMS.filter((item) => {
     if (isAdmin || isAdminMaster) return true;
-    return podeFazer(tab.modulo, 'ver');
+    return podeFazer(item.modulo, 'ver');
   });
-
-  // Garante que a aba ativa está disponível
-  const tabAtiva = tabsVisiveis.find((t) => t.id === activeTab)
-    ? activeTab
-    : tabsVisiveis[0]?.id ?? 'overview';
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-full bg-background overflow-hidden font-sans">
-      {/* Header Móvel */}
       <header className="flex md:hidden items-center justify-between px-5 py-4 border-b bg-card w-full flex-shrink-0 z-30 shadow-sm">
         <div className="flex items-center gap-3">
           <div
@@ -134,7 +132,6 @@ function AppInner() {
         </button>
       </header>
 
-      {/* Backdrop para mobile com transição suave */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-xs transition-opacity duration-300"
@@ -142,13 +139,11 @@ function AppInner() {
         />
       )}
 
-      {/* Sidebar - Fixa no desktop, gaveta deslizante no mobile */}
       <aside
         className={`fixed inset-y-0 left-0 w-64 flex flex-col border-r bg-card h-full z-50 transform transition-transform duration-300 md:relative md:translate-x-0 md:z-0 ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        {/* Logo */}
         <div className="p-5 flex items-center justify-between border-b flex-shrink-0 font-sans">
           <div className="flex items-center gap-3">
             <div
@@ -164,7 +159,6 @@ function AppInner() {
               <span className="text-[10px] text-muted-foreground">Sistema ONG</span>
             </div>
           </div>
-          {/* Botão de Fechar para Mobile */}
           <button
             onClick={() => setIsMobileMenuOpen(false)}
             className="md:hidden p-1.5 rounded-lg border hover:bg-muted text-muted-foreground transition-colors"
@@ -174,36 +168,34 @@ function AppInner() {
           </button>
         </div>
 
-        {/* Navegação */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {tabsVisiveis.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = tabAtiva === tab.id;
+          {itensVisiveis.map((item) => {
+            const Icon = item.icon;
             return (
-              <button
-                key={tab.id}
-                id={`nav-${tab.id}`}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-primary/10 text-primary shadow-sm'
-                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                }`}
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive
+                      ? 'bg-primary/10 text-primary shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                  }`
+                }
               >
-                <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-primary' : ''}`} />
-                {tab.label}
-                {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+                {({ isActive }) => (
+                  <>
+                    <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-primary' : ''}`} />
+                    {item.label}
+                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
+                  </>
                 )}
-              </button>
+              </NavLink>
             );
           })}
         </nav>
 
-        {/* Perfil do usuário logado */}
         {perfil && (
           <div className="p-3 border-t space-y-2 flex-shrink-0">
             <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-muted/30">
@@ -240,16 +232,20 @@ function AppInner() {
         )}
       </aside>
 
-      {/* Conteúdo principal */}
       <main className="flex-1 h-full overflow-y-auto bg-[#F8FAFC] dark:bg-background">
         <div className="p-3 sm:p-6 md:p-8 max-w-7xl mx-auto min-h-full">
-          {tabAtiva === 'overview' && <Overview setActiveTab={setActiveTab} />}
-          {tabAtiva === 'donations' && <Donations />}
-          {tabAtiva === 'financial' && <Financial />}
-          {tabAtiva === 'volunteers' && <Volunteers />}
-          {tabAtiva === 'documents' && <Documents />}
-          {tabAtiva === 'team' && <TeamPage />}
-          {tabAtiva === 'settings' && <SettingsPage />}
+          <Routes>
+            <Route path="/" element={<Overview />} />
+            <Route path="/campanhas" element={<Campaigns />} />
+            <Route path="/campanhas/:id" element={<CampaignDetail />} />
+            <Route path="/financeiro" element={<Financial />} />
+            <Route path="/voluntarios" element={<Volunteers />} />
+            <Route path="/documentos" element={<Documents />} />
+            <Route path="/precos-referencia" element={<PricingReference />} />
+            <Route path="/equipe" element={<TeamPage />} />
+            <Route path="/configuracoes" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </div>
       </main>
     </div>
@@ -258,12 +254,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <BackendStatusGate>
+    <BrowserRouter>
       <AuthProvider>
         <AppInner />
       </AuthProvider>
-    </BackendStatusGate>
+    </BrowserRouter>
   );
 }
-
-

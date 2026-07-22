@@ -1,10 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
-const SUPABASE_URL = 'https://kicposaltebnfatqhitv.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtpY3Bvc2FsdGVibmZhdHFoaXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjQyMTIsImV4cCI6MjA5NDk0MDIxMn0.LYSk-s0ldbt25it5JoE1pa_sOxTnGp7IrprhpKqQfTI';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error(
+    'VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY são obrigatórios. Copie .env.example para .env.local e preencha os valores (locais via `supabase start` ou de produção).',
+  );
+}
+
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,

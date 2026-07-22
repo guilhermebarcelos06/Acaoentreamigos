@@ -4,3 +4,11 @@
 .gemini/
 .agent/
 backend/uploads/
+.env
+.env.local
+*.env
+!*.env.example
+scripts/reports/
+scripts/import-mapping.json
+supabase/.branches/
+supabase/.temp/

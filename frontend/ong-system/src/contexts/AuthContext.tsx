@@ -78,13 +78,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          setLoading(true);
-          await carregarPerfil(session.user.id);
-          setLoading(false);
+          // TOKEN_REFRESHED/USER_UPDATED disparam para uma sessão já
+          // carregada — recarregar o perfil em segundo plano sem acionar
+          // a tela cheia de loading, que desmontaria a página atual.
+          if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            setLoading(true);
+            await carregarPerfil(session.user.id);
+            setLoading(false);
+          } else {
+            carregarPerfil(session.user.id);
+          }
         } else {
           setPerfil(null);
           setPermissoes({});

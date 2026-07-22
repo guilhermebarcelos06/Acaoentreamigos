@@ -1,0 +1,11 @@
+-- Isolado em sua própria migration/transação de propósito: o Postgres não
+-- permite usar um valor de enum recém-adicionado (em literal, policy,
+-- trigger etc.) na mesma transação em que foi criado via ALTER TYPE ... ADD
+-- VALUE ("unsafe use of new value of enum type"). Cada migration do Supabase
+-- CLI roda em sua própria transação, então isso garante que o valor já está
+-- commitado antes de qualquer migration seguinte referenciá-lo.
+--
+-- 'finalizada' fica separado de 'concluida' (que já significa "meta
+-- atingida" na UI/PDFs) — misturar os dois sentidos geraria ambiguidade
+-- permanente entre progresso e ação humana de bloqueio.
+alter type status_campanha add value 'finalizada';

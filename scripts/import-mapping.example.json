@@ -1,0 +1,10 @@
+{
+  "_comment": "Copie para import-mapping.json e ajuste os nomes de coluna para os do arquivo real do Rodrigo. As chaves da esquerda são fixas (não mude); os valores da direita devem bater exatamente com o cabeçalho do CSV.",
+  "doador": "Nome do Doador",
+  "email": "Email",
+  "data": "Data",
+  "valor": "Valor",
+  "campanha": "Campanha",
+  "tipo": "Tipo",
+  "observacao": "Observações"
+}

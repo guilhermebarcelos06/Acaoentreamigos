@@ -249,7 +249,7 @@ export default function Team() {
         p_new_nome: form.nome,
         p_new_email: form.email,
         p_new_cargo: form.cargo,
-        p_new_password: form.senha || null,
+        p_new_password: form.senha || '',
         p_permissoes: moduloPermsArray,
       });
 
